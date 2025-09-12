@@ -11,52 +11,85 @@
 using namespace std;
 
 
-//   USAGE :    cat xyz.csv | ./test2  xmin xmax ymin ymax
+//   USAGE :    cat xyz.csv | ./qto_xray_ortho  xmin xmax ymin ymax  output_image.png  ds 
 
-//   BUILD :    g++ -std=c++0x qto_xray_ortho.cpp -o qto_xray_ortho
+//   BUILD :    g++ -std=c++0x qto_xray_ortho.cpp -o qto_xray_ortho output_image.png
 
-//   RUN   :    cat xyz.csv | ./qto_xray_ortho -26.00 -8.00  -7 9
+//   RUN   :    cat xyz.csv | ./qto_xray_ortho -26.00 -8.00  -7 9   ortho_001.png  0.010
+
+
+bool endsWith(const std::string& fullString, const std::string& ending) 
+{
+    if (ending.length() > fullString.length()) {
+        return false;
+    }
+    return fullString.compare(fullString.length() - ending.length(), ending.length(), ending) == 0;
+}
+
+void usage()
+{
+    cerr << "USAGE : ./qto_xray_ortho  xmin xmax ymin ymax   ortho_image.png  ds_m_per_pixel" << endl;
+    exit(-1);
+}
 
 
 int main(int argc, char* argv[])
 {
-    float pix_per_m = 0.010;   // 1cm pixels
-    const float m_per_pix = 1.0 / pix_per_m;
 
     if (argc<5)
     {
-        cout << "USAGE : ./test xmin xmax ymin ymax" << endl;
-        exit(-1);
+        usage();
     }
+
     float ll = stof(argv[1]);
     float rr = stof(argv[2]);
     float bb = stof(argv[3]);
     float tt = stof(argv[4]);
 
-    cout << "l r b t : " << fixed << setprecision(3) << ll << " " << rr << " " << bb << " " << tt << endl;
+    cerr << "l r b t   : " << fixed << setprecision(3) << ll << " " << rr << " " << bb << " " << tt << endl;
 
     float ww = (rr-ll);
     float hh = (tt-bb);
-    cout << "ww x hh m : " << ww << " x " << hh << endl;
+    cerr << "ww x hh m : " << ww << " x " << hh << endl;
 
-    int W = ceil(ww / pix_per_m);
-    int H = ceil(hh / pix_per_m);
-
-    cout << "W x H pix : " << W << " x " << H << endl;
-
-    vector<uint16_t> buf(W*H, 0);
-    if (0){
-    for (int j=0;j<H;j++)
+    string img_file_png = "ortho.png";
+    if (argc>5)
     {
-        for (int i=0;i<W;i++)
+        string sfil = argv[5];
+        if (!endsWith(sfil, ".png"))
         {
-            int ix = j*W+i;
-            buf[ix]=0;
+            cerr << "bad output file name : " << sfil << endl;
+            usage();
         }
+        img_file_png = sfil; 
     }
+
+    float m_per_pix = 0.010;   // 1cm pixels by default
+
+    if (argc>6) 
+    {   
+        float mpp = stof(argv[6]);
+        if (mpp<0.0001 || mpp > 100.00)
+        {
+            cerr << "pixels per meter : out of range" << endl;
+            usage();
+        }
+        m_per_pix = mpp;
+        
     }
+    const float pix_per_m = 1.0 / m_per_pix;
+
+    cerr << "pix_per_m : " << fixed << setprecision(3) << pix_per_m << endl;
+    cerr << "m_per_pix : " << fixed << setprecision(6) << m_per_pix << endl;
+
+    int W = ceil(ww * pix_per_m);
+    int H = ceil(hh * pix_per_m);
+
+    cerr << "W x H pix : " << W << " x " << H << endl;
 
     // stream and count pts per x y pixel bin
+
+    vector<uint16_t> buf(W*H, 0);
 
     {
 
@@ -77,7 +110,7 @@ int main(int argc, char* argv[])
     
         float x = row[0];
         float y = row[1];
-        //cout << "x y : " << fixed << setprecision(3) << x << " " << y << endl;
+        //cerr << "x y : " << fixed << setprecision(3) << x << " " << y << endl;
 
         if (x<ll || x>rr || y<bb || y>tt)
         {
@@ -85,22 +118,23 @@ int main(int argc, char* argv[])
         }
         else
         {
-            int i = round((x-ll) * m_per_pix );
-            int j = round((y-bb) * m_per_pix);
+            int i = round((x-ll) * pix_per_m );
+            int j = round((y-bb) * pix_per_m);
 
             if (i<0 || j<0 || i>=W || j>=H)
-                cout << "BAD index" << endl;
+                cerr << "BAD index" << endl;
             
-            // cout << "i j : " << i << " " << j << endl; 
+            // cerr << "i j : " << i << " " << j << endl; 
             
             int ix = j*W+i;
-            // cout << " ix : " << ix << endl;
+            // cerr << " ix : " << ix << endl;
 
             buf[ix]++;
         }
 
     }
-    cout << "ignored oobs : " << oob << endl;
+    if (oob)
+        cerr << "ignored oobs : " << oob << endl;
         
     }
 
@@ -118,10 +152,10 @@ int main(int argc, char* argv[])
                 npmax=np;
         }
     }
-    cout << "max cnt : " << npmax << endl;
+    cerr << "max count : " << npmax << endl;
     }
 
-    // normalize [0..npmax] -> 0..255 in some color gradient scheme 
+    // normalize [0..npmax] -> 0..255 in some color gradient scheme, grayscale for now
     // write rgb array, save as image
 
 
@@ -150,7 +184,9 @@ int main(int argc, char* argv[])
         }
     }
 
-    stbi_write_png("output.png", width, height, 3, data.data(), width * 3);
+    cerr << "writing   : " << img_file_png << endl;
+
+    stbi_write_png(img_file_png.c_str(), width, height, 3, data.data(), width * 3);
 }
 }
 
