@@ -71,7 +71,7 @@ int main(int argc, char* argv[])
         float mpp = stof(argv[6]);
         if (mpp<0.0001 || mpp > 100.00)
         {
-            cerr << "pixels per meter : out of range" << endl;
+            cerr << "meters per pixel : out of range" << endl;
             usage();
         }
         m_per_pix = mpp;
