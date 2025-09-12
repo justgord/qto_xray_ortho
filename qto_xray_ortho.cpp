@@ -71,7 +71,7 @@ int main(int argc, char* argv[])
         float mpp = stof(argv[6]);
         if (mpp<0.0001 || mpp > 100.00)
         {
-            cerr << "meters per pixel : out of range" << endl;
+            cerr << "pixels per meter : out of range" << endl;
             usage();
         }
         m_per_pix = mpp;
@@ -158,6 +158,8 @@ int main(int argc, char* argv[])
     // normalize [0..npmax] -> 0..255 in some color gradient scheme, grayscale for now
     // write rgb array, save as image
 
+    if (npmax<1)
+        npmax=1;
 
     /// write rgb buffer, save to png file
 
