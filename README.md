@@ -9,7 +9,7 @@ take xyz pointcloud csv data and render as an xray style orthoimage : color matc
 If you have a laz pointcloud you want the xray plan view, you could take a horizontal section
 using las2las to filter and convert to xyz csv format, then pipe into qto_xray_ortho : 
 
-    time las2las -keep_z 1.000 2.800 -i pointcloud.laz -otxt -oparse xyz -osep comma -stdout |  \
+    las2las -keep_z 1.000 2.800 -i pointcloud.laz -otxt -oparse xyz -osep comma -stdout |  \
        ./qto_xray_ortho  0 20 0 20  plan_xray.png   0.01
 
 ## make test
