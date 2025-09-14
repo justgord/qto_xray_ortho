@@ -9,6 +9,9 @@ test : qto_xray_ortho xyz.csv
 xyz.csv :
 	wget https://quato.blob.core.windows.net/uploads/pub/xyz.csv
 
+qto_xray_ortho.exe : 
+	clang -std=c++14 -static qto_xray_ortho.cpp -o qto_xray_ortho.exe
+
 clean : 
 	rm -f ortho_010.png  ortho_005.png ortho.png qto_xray_ortho
 
