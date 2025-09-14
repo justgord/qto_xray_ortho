@@ -9,7 +9,7 @@ test : qto_xray_ortho xyz.csv
 xyz.csv :
 	wget https://quato.blob.core.windows.net/uploads/pub/xyz.csv
 
-qto_xray_ortho.exe : 
+win : 
 	clang -std=c++14 -static qto_xray_ortho.cpp -o qto_xray_ortho.exe
 
 clean : 
