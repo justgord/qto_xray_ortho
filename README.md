@@ -12,15 +12,20 @@ using las2las to filter and convert to xyz csv format, then pipe into qto_xray_o
     las2las -keep_z 1.000 2.800 -i pointcloud.laz -otxt -oparse xyz -osep comma -stdout |  \
        ./qto_xray_ortho  0 20 0 20  plan_xray.png   0.01
 
-## make test
+## build
 
-make test will fetch a 60Mb xyz.csv point cloud
+On **linux** 'make test' will fetch a 60Mb xyz.csv test point cloud, build with g++,
 then generate two orthos, at 1cm and 5mm pixel size
+
+On **windows** 'make win' witll build the exe with clang compiler.  or you can run : 
+
+    clang -std=c++14 -static qto_xray_ortho.cpp -o qto_xray_ortho.exe
+
+or download the pre-built **windows executable** here : [qto_xray_ortho.exe](https://quato.blob.core.windows.net/uploads/pub/qto_xray_ortho.exe)
 
 ## todo
 
- - windows release, exe or installer : maybe use mingw ? all static so no DLL deps
- - maybe  line arg for stdin or input csv file name to use : eg - or xyz_input.csv
+ - maybe cmd line arg for stdin or input csv file name to use : eg - or xyz_input.csv
  - more subtle xray count filtering / scaling : eg to remove low count noise
  - better image output library, and support for .tiff and especially .webp
 
